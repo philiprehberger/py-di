@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "philiprehberger-di"
-version = "0.1.0"
+version = "0.1.1"
 description = "Lightweight dependency injection container for Python."
 readme = "README.md"
 license = "MIT"
@@ -24,9 +24,16 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/philiprehberger/py-di"
+Homepage = "https://github.com/philiprehberger/py-di#readme"
 Repository = "https://github.com/philiprehberger/py-di"
 Issues = "https://github.com/philiprehberger/py-di/issues"
+Changelog = "https://github.com/philiprehberger/py-di/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/philiprehberger_di"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
