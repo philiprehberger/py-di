@@ -88,15 +88,65 @@ db = container.resolve(Database)  # on_create called after creation
 container.reset()                 # on_destroy called before clearing singletons
 ```
 
+### Circular Dependency Detection
+
+The container detects circular dependencies during resolution and raises a
+`CircularDependencyError` with the full dependency chain:
+
+```python
+from philiprehberger_di import CircularDependencyError
+
+class A:
+    def __init__(self, b: B) -> None: ...
+
+class B:
+    def __init__(self, a: A) -> None: ...
+
+container.register(A)
+container.register(B)
+
+try:
+    container.resolve(A)
+except CircularDependencyError as e:
+    print(e)  # Circular dependency detected: A -> B -> A
+    print(e.chain)  # [A, B, A]
+```
+
+### Scoped Lifetime
+
+Services registered with `Lifetime.SCOPED` are singletons within a scope but
+differ across scopes:
+
+```python
+from philiprehberger_di import Container, Lifetime
+
+container = Container()
+container.register(RequestContext, lifetime=Lifetime.SCOPED)
+container.register(Logger, lifetime=Lifetime.SINGLETON)
+
+with container.create_scope() as scope:
+    ctx1 = scope.resolve(RequestContext)
+    ctx2 = scope.resolve(RequestContext)
+    assert ctx1 is ctx2  # same within the scope
+
+# on_destroy hooks are called when the scope exits
+```
+
 ## API
 
 | Function / Class | Description |
 |------------------|-------------|
 | `Container()` | Create a new dependency injection container |
-| `container.register(cls, factory?, singleton?, on_create?, on_destroy?)` | Register a class with optional factory, singleton flag, and lifecycle hooks |
+| `container.register(cls, factory?, singleton?, lifetime?, on_create?, on_destroy?)` | Register a class with optional factory, lifetime, and lifecycle hooks |
 | `container.resolve(cls)` | Resolve an instance, recursively injecting dependencies |
+| `container.create_scope()` | Create a child scope for scoped lifetime management |
 | `container.reset()` | Call `on_destroy` for singletons with hooks, then clear the cache |
 | `inject(container)` | Decorator that resolves type-hinted params from the container |
+| `Lifetime.TRANSIENT` | New instance on every resolve (default) |
+| `Lifetime.SINGLETON` | Single shared instance across the container |
+| `Lifetime.SCOPED` | Single instance per scope, transient without a scope |
+| `CircularDependencyError` | Raised when a circular dependency chain is detected |
+| `Scope` | Child scope returned by `create_scope()`, used as a context manager |
 
 ## Development
 
@@ -107,10 +157,10 @@ python -m pytest tests/ -v
 
 ## Support
 
-If you find this package useful, consider starring the repository.
+If you find this package useful, consider giving it a star on GitHub — it helps motivate continued maintenance and development.
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Philip%20Rehberger-blue?logo=linkedin)](https://www.linkedin.com/in/philiprehberger/)
-[![More packages](https://img.shields.io/badge/More%20packages-philiprehberger-orange)](https://github.com/philiprehberger?tab=repositories)
+[![LinkedIn](https://img.shields.io/badge/Philip%20Rehberger-LinkedIn-0A66C2?logo=linkedin)](https://www.linkedin.com/in/philiprehberger)
+[![More packages](https://img.shields.io/badge/more-open%20source%20packages-blue)](https://philiprehberger.com/open-source-packages)
 
 ## License
 

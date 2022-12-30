@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 (2026-03-28)
+
+- Add circular dependency detection with clear error messages
+- Add `@inject` decorator for automatic parameter resolution
+- Add scoped lifetime support with `container.create_scope()`
+- Bring package into full compliance with guides
+
 ## 0.2.0 (2026-03-27)
 
 - Add `on_create` lifecycle hook to `Container.register()` — called after each instance is created
