@@ -2,12 +2,7 @@
 
 [![Tests](https://github.com/philiprehberger/py-di/actions/workflows/publish.yml/badge.svg)](https://github.com/philiprehberger/py-di/actions/workflows/publish.yml)
 [![PyPI version](https://img.shields.io/pypi/v/philiprehberger-di.svg)](https://pypi.org/project/philiprehberger-di/)
-[![GitHub release](https://img.shields.io/github/v/release/philiprehberger/py-di)](https://github.com/philiprehberger/py-di/releases)
 [![Last updated](https://img.shields.io/github/last-commit/philiprehberger/py-di)](https://github.com/philiprehberger/py-di/commits/main)
-[![License](https://img.shields.io/github/license/philiprehberger/py-di)](LICENSE)
-[![Bug Reports](https://img.shields.io/github/issues/philiprehberger/py-di/bug)](https://github.com/philiprehberger/py-di/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
-[![Feature Requests](https://img.shields.io/github/issues/philiprehberger/py-di/enhancement)](https://github.com/philiprehberger/py-di/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
-[![Sponsor](https://img.shields.io/badge/sponsor-GitHub%20Sponsors-ec6cb9)](https://github.com/sponsors/philiprehberger)
 
 Lightweight dependency injection container for Python.
 
@@ -157,10 +152,21 @@ python -m pytest tests/ -v
 
 ## Support
 
-If you find this package useful, consider giving it a star on GitHub — it helps motivate continued maintenance and development.
+If you find this project useful:
 
-[![LinkedIn](https://img.shields.io/badge/Philip%20Rehberger-LinkedIn-0A66C2?logo=linkedin)](https://www.linkedin.com/in/philiprehberger)
-[![More packages](https://img.shields.io/badge/more-open%20source%20packages-blue)](https://philiprehberger.com/open-source-packages)
+⭐ [Star the repo](https://github.com/philiprehberger/py-di)
+
+🐛 [Report issues](https://github.com/philiprehberger/py-di/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+
+💡 [Suggest features](https://github.com/philiprehberger/py-di/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
+
+❤️ [Sponsor development](https://github.com/sponsors/philiprehberger)
+
+🌐 [All Open Source Projects](https://philiprehberger.com/open-source-packages)
+
+💻 [GitHub Profile](https://github.com/philiprehberger)
+
+🔗 [LinkedIn Profile](https://www.linkedin.com/in/philiprehberger)
 
 ## License
 
