@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 (2026-03-27)
+
+- Add `on_create` lifecycle hook to `Container.register()` — called after each instance is created
+- Add `on_destroy` lifecycle hook to `Container.register()` — called for singletons during `reset()`
+- Add 8 badges to README (tests, PyPI, release, last updated, license, bugs, features, sponsor)
+- Add Support section to README
+- Add `.github/` templates (bug report, feature request, PR template, dependabot)
+
 ## 0.1.1 (2026-03-22)
 
 - Add Changelog URL to project URLs

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import functools
 import inspect
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, TypeVar, get_type_hints
 
 __all__ = ["Container", "inject"]
@@ -18,6 +18,8 @@ class _Registration:
 
     factory: Callable[..., Any]
     singleton: bool
+    on_create: Callable[..., None] | None = field(default=None)
+    on_destroy: Callable[..., None] | None = field(default=None)
 
 
 class Container:
@@ -33,14 +35,25 @@ class Container:
         factory: Callable[..., T] | None = None,
         *,
         singleton: bool = False,
+        on_create: Callable[[T], None] | None = None,
+        on_destroy: Callable[[T], None] | None = None,
     ) -> None:
         """Register a class with an optional factory and singleton flag.
 
         If *factory* is ``None``, *cls* itself is used as the factory.
+
+        Args:
+            cls: The type to register.
+            factory: Optional callable used to create instances.
+            singleton: If True, only one instance is created and cached.
+            on_create: Optional callback invoked after each instance is created.
+            on_destroy: Optional callback invoked when a singleton is cleared via reset.
         """
         self._registry[cls] = _Registration(
             factory=factory if factory is not None else cls,
             singleton=singleton,
+            on_create=on_create,
+            on_destroy=on_destroy,
         )
 
     def resolve(self, cls: type[T]) -> T:
@@ -60,13 +73,24 @@ class Container:
         kwargs = self._resolve_params(registration.factory)
         instance = registration.factory(**kwargs)
 
+        if registration.on_create is not None:
+            registration.on_create(instance)
+
         if registration.singleton:
             self._singletons[cls] = instance
 
         return instance  # type: ignore[return-value]
 
     def reset(self) -> None:
-        """Clear the singletons cache, keeping registrations intact."""
+        """Clear the singletons cache, keeping registrations intact.
+
+        Before clearing, calls ``on_destroy(instance)`` for each singleton
+        whose registration includes an *on_destroy* callback.
+        """
+        for cls, instance in self._singletons.items():
+            registration = self._registry.get(cls)
+            if registration is not None and registration.on_destroy is not None:
+                registration.on_destroy(instance)
         self._singletons.clear()
 
     # ------------------------------------------------------------------
