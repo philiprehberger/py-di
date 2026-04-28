@@ -127,6 +127,22 @@ with container.create_scope() as scope:
 # on_destroy hooks are called when the scope exits
 ```
 
+### Lazy Resolution
+
+Defer construction of an expensive service until first use:
+
+```python
+from philiprehberger_di import Container, Lifetime
+
+container = Container()
+container.register(ExpensiveClient, lifetime=Lifetime.SINGLETON)
+
+proxy = container.lazy(ExpensiveClient)
+# ExpensiveClient is NOT yet constructed
+
+result = proxy.do_thing()  # constructed on first access, cached afterwards
+```
+
 ## API
 
 | Function / Class | Description |
@@ -134,6 +150,7 @@ with container.create_scope() as scope:
 | `Container()` | Create a new dependency injection container |
 | `container.register(cls, factory?, singleton?, lifetime?, on_create?, on_destroy?)` | Register a class with optional factory, lifetime, and lifecycle hooks |
 | `container.resolve(cls)` | Resolve an instance, recursively injecting dependencies |
+| `container.lazy(cls)` | Return a `Lazy[cls]` proxy that resolves on first use |
 | `container.create_scope()` | Create a child scope for scoped lifetime management |
 | `container.reset()` | Call `on_destroy` for singletons with hooks, then clear the cache |
 | `inject(container)` | Decorator that resolves type-hinted params from the container |
@@ -142,6 +159,7 @@ with container.create_scope() as scope:
 | `Lifetime.SCOPED` | Single instance per scope, transient without a scope |
 | `CircularDependencyError` | Raised when a circular dependency chain is detected |
 | `Scope` | Child scope returned by `create_scope()`, used as a context manager |
+| `Lazy[T]` | Proxy that resolves the underlying service on first access |
 
 ## Development
 

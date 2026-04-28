@@ -7,6 +7,7 @@ import pytest
 from philiprehberger_di import (
     CircularDependencyError,
     Container,
+    Lazy,
     Lifetime,
     Scope,
     inject,
@@ -312,3 +313,82 @@ def test_lifetime_takes_precedence_over_singleton_flag() -> None:
     a = container.resolve(_Logger)
     b = container.resolve(_Logger)
     assert a is not b
+
+
+class TestLazy:
+    def test_lazy_does_not_resolve_until_used(self) -> None:
+        created: list[str] = []
+
+        class Expensive:
+            def __init__(self) -> None:
+                created.append("init")
+
+            def value(self) -> int:
+                return 42
+
+        container = Container()
+        container.register(Expensive, lifetime=Lifetime.SINGLETON)
+
+        proxy = container.lazy(Expensive)
+        assert created == []  # not resolved yet
+
+        # First access triggers resolution
+        result = proxy.value()
+        assert result == 42
+        assert created == ["init"]
+
+    def test_lazy_caches_after_first_access(self) -> None:
+        container = Container()
+        container.register(_Logger, lifetime=Lifetime.SINGLETON)
+
+        proxy = container.lazy(_Logger)
+        first = proxy.get()
+        second = proxy.get()
+        assert first is second
+
+    def test_lazy_get_returns_underlying_instance(self) -> None:
+        container = Container()
+        container.register(_Logger, lifetime=Lifetime.SINGLETON)
+        proxy = container.lazy(_Logger)
+        assert isinstance(proxy.get(), _Logger)
+
+    def test_lazy_proxies_attribute_access(self) -> None:
+        container = Container()
+        container.register(_Logger, lifetime=Lifetime.SINGLETON)
+        proxy = container.lazy(_Logger)
+
+        proxy.log("hello")
+        # Reaching back through the resolved instance shows the side-effect
+        assert proxy.get().logs == ["hello"]
+
+    def test_lazy_within_scope_resolves_per_scope(self) -> None:
+        class Service:
+            counter = 0
+
+            def __init__(self) -> None:
+                Service.counter += 1
+
+        container = Container()
+        container.register(Service, lifetime=Lifetime.SCOPED)
+
+        with container.create_scope() as scope_a:
+            proxy_a = scope_a.lazy(Service)
+            proxy_a.get()  # resolves once
+
+        with container.create_scope() as scope_b:
+            proxy_b = scope_b.lazy(Service)
+            proxy_b.get()  # resolves a second time in new scope
+
+        assert Service.counter == 2
+
+    def test_lazy_repr_indicates_state(self) -> None:
+        container = Container()
+        container.register(_Logger, lifetime=Lifetime.SINGLETON)
+        proxy = container.lazy(_Logger)
+        assert "pending" in repr(proxy)
+        proxy.get()
+        assert "resolved" in repr(proxy)
+
+    def test_lazy_class_is_exported(self) -> None:
+        # Smoke test: the public class is importable
+        assert Lazy is not None

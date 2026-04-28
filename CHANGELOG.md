@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0 (2026-04-27)
+
+- Add `Lazy[T]` proxy class and `Container.lazy(cls)` / `Scope.lazy(cls)` helpers for deferred resolution of expensive dependencies
+- The proxy resolves on first attribute access, call, or `.get()` and caches the instance afterwards
+- Per-scope `Lazy` proxies respect scope lifetimes (re-resolve in a new scope)
+
 ## 0.3.1 (2026-03-31)
 
 - Standardize README to 3-badge format with emoji Support section

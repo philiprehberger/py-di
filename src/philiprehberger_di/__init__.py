@@ -6,17 +6,64 @@ import enum
 import functools
 import inspect
 from dataclasses import dataclass, field
-from typing import Any, Callable, TypeVar, get_type_hints
+from typing import Any, Callable, Generic, TypeVar, get_type_hints
 
 __all__ = [
     "CircularDependencyError",
     "Container",
+    "Lazy",
     "Lifetime",
     "Scope",
     "inject",
 ]
 
 T = TypeVar("T")
+
+
+class Lazy(Generic[T]):
+    """Lazy proxy for a registered service.
+
+    Holds a reference to a container (or scope) and the target type, but does
+    not instantiate the underlying service until an attribute or call is made
+    against the proxy. The resolved instance is cached after the first access.
+
+    Use :meth:`get` to obtain the underlying instance explicitly, or just call
+    or attribute-access the proxy and it will resolve transparently.
+    """
+
+    __slots__ = ("_resolver", "_cls", "_resolved", "_instance")
+
+    def __init__(
+        self,
+        resolver: Container | Scope,
+        cls: type[T],
+    ) -> None:
+        object.__setattr__(self, "_resolver", resolver)
+        object.__setattr__(self, "_cls", cls)
+        object.__setattr__(self, "_resolved", False)
+        object.__setattr__(self, "_instance", None)
+
+    def get(self) -> T:
+        """Return the resolved instance, resolving on the first call."""
+        if not object.__getattribute__(self, "_resolved"):
+            resolver = object.__getattribute__(self, "_resolver")
+            cls = object.__getattribute__(self, "_cls")
+            instance = resolver.resolve(cls)
+            object.__setattr__(self, "_instance", instance)
+            object.__setattr__(self, "_resolved", True)
+        return object.__getattribute__(self, "_instance")  # type: ignore[no-any-return]
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.get(), name)
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self.get()(*args, **kwargs)
+
+    def __repr__(self) -> str:
+        cls = object.__getattribute__(self, "_cls")
+        resolved = object.__getattribute__(self, "_resolved")
+        state = "resolved" if resolved else "pending"
+        return f"Lazy[{cls.__qualname__}]({state})"
 
 
 class Lifetime(enum.Enum):
@@ -64,6 +111,10 @@ class Scope:
         parent container. Transients are always freshly created.
         """
         return self._container._resolve(cls, scope=self)
+
+    def lazy(self, cls: type[T]) -> Lazy[T]:
+        """Return a :class:`Lazy` proxy bound to this scope."""
+        return Lazy(self, cls)
 
     def __enter__(self) -> Scope:
         return self
@@ -132,6 +183,10 @@ class Container:
             CircularDependencyError: If a circular dependency chain is detected.
         """
         return self._resolve(cls, scope=None)
+
+    def lazy(self, cls: type[T]) -> Lazy[T]:
+        """Return a :class:`Lazy` proxy that defers resolution of *cls* until first use."""
+        return Lazy(self, cls)
 
     def create_scope(self) -> Scope:
         """Create a child scope.
