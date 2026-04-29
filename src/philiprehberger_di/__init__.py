@@ -200,6 +200,30 @@ class Container:
         """
         return Scope(self)
 
+    def is_registered(self, cls: type) -> bool:
+        """Return ``True`` if *cls* has a registration in this container."""
+        return cls in self._registry
+
+    def unregister(self, cls: type) -> None:
+        """Remove the registration for *cls* and any cached singleton.
+
+        If a singleton instance is cached for *cls* and the registration
+        defines an ``on_destroy`` callback, the callback is invoked before
+        clearing.
+
+        Raises:
+            KeyError: If *cls* is not registered.
+        """
+        if cls not in self._registry:
+            raise KeyError(f"{cls!r} is not registered in the container")
+        registration = self._registry[cls]
+        if cls in self._singletons:
+            instance = self._singletons[cls]
+            if registration.on_destroy is not None:
+                registration.on_destroy(instance)
+            del self._singletons[cls]
+        del self._registry[cls]
+
     def reset(self) -> None:
         """Clear the singletons cache, keeping registrations intact.
 

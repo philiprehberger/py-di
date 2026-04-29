@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 (2026-04-28)
+
+- Add `Container.is_registered(cls)` introspection helper
+- Add `Container.unregister(cls)` — removes the registration and cached singleton, calling `on_destroy` first when configured
+
 ## 0.4.0 (2026-04-27)
 
 - Add `Lazy[T]` proxy class and `Container.lazy(cls)` / `Scope.lazy(cls)` helpers for deferred resolution of expensive dependencies

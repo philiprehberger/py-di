@@ -143,12 +143,25 @@ proxy = container.lazy(ExpensiveClient)
 result = proxy.do_thing()  # constructed on first access, cached afterwards
 ```
 
+### Introspection
+
+Check whether a type is registered, or remove it. Useful when wiring up tests:
+
+```python
+container.is_registered(Database)  # True / False
+
+container.register(Database, singleton=True)
+container.unregister(Database)     # also clears cached singleton + calls on_destroy
+```
+
 ## API
 
 | Function / Class | Description |
 |------------------|-------------|
 | `Container()` | Create a new dependency injection container |
 | `container.register(cls, factory?, singleton?, lifetime?, on_create?, on_destroy?)` | Register a class with optional factory, lifetime, and lifecycle hooks |
+| `container.unregister(cls)` | Remove a registration; clears any cached singleton and calls `on_destroy` |
+| `container.is_registered(cls)` | Return whether *cls* is registered in this container |
 | `container.resolve(cls)` | Resolve an instance, recursively injecting dependencies |
 | `container.lazy(cls)` | Return a `Lazy[cls]` proxy that resolves on first use |
 | `container.create_scope()` | Create a child scope for scoped lifetime management |

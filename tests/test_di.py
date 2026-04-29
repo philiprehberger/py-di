@@ -392,3 +392,73 @@ class TestLazy:
     def test_lazy_class_is_exported(self) -> None:
         # Smoke test: the public class is importable
         assert Lazy is not None
+
+
+class TestIntrospection:
+    def test_is_registered_false_initially(self) -> None:
+        c = Container()
+
+        class S:
+            pass
+
+        assert c.is_registered(S) is False
+
+    def test_is_registered_true_after_register(self) -> None:
+        c = Container()
+
+        class S:
+            pass
+
+        c.register(S)
+        assert c.is_registered(S) is True
+
+    def test_unregister_removes_registration(self) -> None:
+        c = Container()
+
+        class S:
+            pass
+
+        c.register(S, singleton=True)
+        c.resolve(S)
+        c.unregister(S)
+        assert c.is_registered(S) is False
+        with pytest.raises(KeyError):
+            c.resolve(S)
+
+    def test_unregister_clears_singleton_cache(self) -> None:
+        c = Container()
+        instances: list[object] = []
+
+        class S:
+            def __init__(self) -> None:
+                instances.append(self)
+
+        c.register(S, singleton=True)
+        first = c.resolve(S)
+        c.unregister(S)
+        c.register(S, singleton=True)
+        second = c.resolve(S)
+        assert first is not second
+        assert len(instances) == 2
+
+    def test_unregister_calls_on_destroy(self) -> None:
+        c = Container()
+        destroyed: list[object] = []
+
+        class S:
+            pass
+
+        c.register(S, singleton=True, on_destroy=lambda inst: destroyed.append(inst))
+        instance = c.resolve(S)
+        c.unregister(S)
+        assert destroyed == [instance]
+
+    def test_unregister_unknown_raises(self) -> None:
+        c = Container()
+
+        class S:
+            pass
+
+        with pytest.raises(KeyError):
+            c.unregister(S)
+
