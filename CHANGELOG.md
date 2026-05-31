@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0 (2026-05-30)
+
+- Add `Container.registered_types()` returning the list of all registered types
+- Add `Container.clear()` to remove all registrations and cached singletons (invokes `on_destroy` for cached singletons; distinct from `reset()` which only clears the singleton cache)
+
 ## 0.5.0 (2026-04-28)
 
 - Add `Container.is_registered(cls)` introspection helper

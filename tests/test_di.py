@@ -462,3 +462,60 @@ class TestIntrospection:
         with pytest.raises(KeyError):
             c.unregister(S)
 
+
+class TestRegisteredTypesAndClear:
+    def test_registered_types_returns_insertion_order(self) -> None:
+        c = Container()
+
+        class First:
+            pass
+
+        class Second:
+            pass
+
+        c.register(First)
+        c.register(Second)
+        assert c.registered_types() == [First, Second]
+
+    def test_registered_types_returns_a_copy(self) -> None:
+        c = Container()
+
+        class S:
+            pass
+
+        c.register(S)
+        snapshot = c.registered_types()
+        snapshot.clear()
+        # Mutating the returned list must not affect the container
+        assert c.registered_types() == [S]
+
+    def test_clear_removes_registrations_and_singletons(self) -> None:
+        c = Container()
+
+        class S:
+            pass
+
+        c.register(S, singleton=True)
+        c.resolve(S)
+        c.clear()
+        assert c.is_registered(S) is False
+        with pytest.raises(KeyError):
+            c.resolve(S)
+
+    def test_clear_calls_on_destroy_for_cached_singletons(self) -> None:
+        destroyed: list[object] = []
+        c = Container()
+
+        class S:
+            pass
+
+        c.register(S, singleton=True, on_destroy=destroyed.append)
+        instance = c.resolve(S)
+        c.clear()
+        assert destroyed == [instance]
+
+    def test_clear_on_empty_container_is_safe(self) -> None:
+        c = Container()
+        c.clear()
+        assert c.registered_types() == []
+

@@ -236,6 +236,31 @@ class Container:
                 registration.on_destroy(instance)
         self._singletons.clear()
 
+    def registered_types(self) -> list[type]:
+        """Return a list of all types registered in this container.
+
+        The list is a snapshot — mutating it does not affect the
+        container. Order is insertion order (Python dict ordering).
+        """
+        return list(self._registry.keys())
+
+    def clear(self) -> None:
+        """Remove all registrations and cached singletons.
+
+        Before clearing, calls ``on_destroy(instance)`` for each cached
+        singleton whose registration includes an *on_destroy* callback.
+
+        Distinct from :meth:`reset`, which only clears the singleton
+        cache while keeping registrations intact.
+        """
+        # Invoke on_destroy hooks for any cached singletons first
+        for cls, instance in self._singletons.items():
+            registration = self._registry.get(cls)
+            if registration is not None and registration.on_destroy is not None:
+                registration.on_destroy(instance)
+        self._singletons.clear()
+        self._registry.clear()
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------

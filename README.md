@@ -154,6 +154,23 @@ container.register(Database, singleton=True)
 container.unregister(Database)     # also clears cached singleton + calls on_destroy
 ```
 
+### Introspection and full clear
+
+List every type registered in the container, or wipe it clean:
+
+```python
+container.register(Logger)
+container.register(Database, singleton=True)
+
+container.registered_types()  # [Logger, Database] — snapshot, in insertion order
+
+container.clear()  # removes ALL registrations and cached singletons
+                   # (calls on_destroy first for any cached singletons)
+```
+
+Unlike `reset()`, which only clears the singleton cache and keeps
+registrations intact, `clear()` empties the container entirely.
+
 ## API
 
 | Function / Class | Description |
@@ -166,6 +183,8 @@ container.unregister(Database)     # also clears cached singleton + calls on_des
 | `container.lazy(cls)` | Return a `Lazy[cls]` proxy that resolves on first use |
 | `container.create_scope()` | Create a child scope for scoped lifetime management |
 | `container.reset()` | Call `on_destroy` for singletons with hooks, then clear the cache |
+| `container.registered_types()` | Return a snapshot list of all registered types (insertion order) |
+| `container.clear()` | Remove all registrations and cached singletons (calls `on_destroy` first) |
 | `inject(container)` | Decorator that resolves type-hinted params from the container |
 | `Lifetime.TRANSIENT` | New instance on every resolve (default) |
 | `Lifetime.SINGLETON` | Single shared instance across the container |
